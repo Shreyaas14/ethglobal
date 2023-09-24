@@ -6,14 +6,114 @@ import Head from 'next/head';
 // import { Client } from '@xmtp/xmtp-js'
 // import { Wallet } from 'ethers'
 
+import { Client } from '@xmtp/xmtp-js'; 
+import { Wallet } from 'ethers'; 
+import { get } from 'http';
+
+interface LinkedAccount {
+  type: string; // More specific types like 'wallet' | 'email' can be used if known
+  address: string;
+  chain_type?: string; 
+  verified_at: number;
+}
+
+interface UserData {
+  id: string;
+  created_at: number;
+  linked_accounts: LinkedAccount[];
+}
+
+interface UserResponse {
+  data: UserData[];
+  next_cursor: string;
+}
+
+const data: UserResponse = require('./sample.json');
+
+function extractAddresses(data: UserResponse): string[] {
+  const addresses: string[] = [];
+  
+  for (const user of data.data) {
+    for (const account of user.linked_accounts) {
+      addresses.push(account.address);
+    }
+  }
+
+  return addresses;
+}
+
+const addressesArray = extractAddresses(data);
+console.log(addressesArray);
+
+
+
+
 export default function DashboardPage() {
-  // const router = useRouter();
-  // const {
-  //   ready,
-  //   authenticated,
-  //   user,
-  //   logout,
-  // } = usePrivy();
+  const router = useRouter();
+  const {
+      ready,
+      authenticated,
+  } = usePrivy();
+
+  const [users, setUsers] = useState<UserData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+
+  useEffect(() => {
+      if (ready && !authenticated) {
+          router.push('/');
+      }
+  }, [ready, authenticated, router]);
+
+  const getUsers = async (cursor) => {
+      const url = `/api/getUsers` + (cursor ? `?cursor=${cursor}` : '');
+      const response = await fetch(url);
+
+      if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      return console.log(response.json());
+  };
+
+  useEffect(() => {
+      const fetchData = async () => {
+          let cursor;
+          let fetchedUsers: any[] | ((prevState: never[]) => never[]) = [];
+
+          try {
+              do {
+                  const query = await getUsers(cursor);
+                  fetchedUsers = fetchedUsers.concat(query.data);
+                  cursor = query.next_cursor;
+              } while(cursor !== null);
+
+              setUsers(fetchedUsers);
+          } 
+          catch (err) {
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError('An error occurred.');
+            }
+        }
+          finally 
+          {
+              setIsLoading(false);
+          }
+      };
+
+      fetchData();
+  }, []);
+
+  if (isLoading) {
+      return <div>Loading...</div>;
+  }
+
+  if (error) {
+      return <div>Error: {error}</div>;
+  }
 
   // const [ethData, setEthData] = useState([]);
   // const [polyData, setPolyData] = useState([]);
@@ -23,50 +123,6 @@ export default function DashboardPage() {
   //   const ethUrl = "http://localhost:3001/ethData";  
   //   const polyUrl = "http://localhost:3001/polyData";  
   //   const bnbUrl = "http://localhost:3001/bnbData";
-  
-    
-  //   fetch(ethUrl).then((response) => {
-  //     if (!response.ok) {
-  //       throw new Error('Network response was not ok');
-  //     }
-  //     return response.json();
-  //   })
-  //   .then((responseData) => {
-  //     const edata = (responseData); // Update the state with the fetched data
-  //     setEthData(edata.map((item: any) => item.price_close))
-  //   })
-  //   .catch((err) => {
-  //     console.log(err); // Handle errors
-  //   });
-    
-  //   fetch(polyUrl).then((response) => {
-  //     if (!response.ok) {
-  //       throw new Error('Network response was not ok');
-  //     }
-  //     return response.json();
-  //   })
-  //   .then((responseData) => {
-  //     const pdata = (responseData); // Update the state with the fetched data
-  //     setPolyData(pdata.map((item: any) => item.price_close))
-  //   })
-  //   .catch((err) => {
-  //     console.log(err); // Handle errors
-  //   });
-
-  //   fetch(bnbUrl).then((response) => {
-  //     if (!response.ok) {
-  //       throw new Error('Network response was not ok');
-  //     }
-  //     return response.json();
-  //   })
-  //   .then((responseData) => {
-  //     const bdata = (responseData); // Update the state with the fetched data
-  //     setBnbData(bdata.map((item: any) => item.price_close))
-  //   })
-  //   .catch((err) => {
-  //     console.log(err); // Handle errors
-  //   });
-  // }, [])
   
 
   return (
