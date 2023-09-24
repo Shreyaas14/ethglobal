@@ -11,7 +11,7 @@ export default function LoginPage() {
     </Head>
     <main className="flex flex-col p-12 min-h-screen min-w-full bg-[url(https://drive.google.com/uc?id=1Jn-aQ2byyirIgeZ1sCoZhbM9NUPoRKKd)]">
       {/* // bg-[url(https://drive.google.com/uc?id=1Jn-aQ2byyirIgeZ1sCoZhbM9NUPoRKKd)] */}
-      <div className='flex flex-row justify-between bg-white/10 text-white items-center p-2 px-4 rounded-full mb-16'>
+      <div className='flex flex-row justify-between bg-white/10 text-white items-center p-2 px-4 rounded-lg mb-16'>
         <div className='flex flex-row'>
           <img src='https://drive.google.com/uc?id=17sLQ4IMiInbTBcCK8rxkGEK8vbILVLAM' className='w-[35px]' alt='NYU Logo' />
           <p className='font-bold text-white text-2xl'>Arbitrage</p>

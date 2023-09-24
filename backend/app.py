@@ -5,6 +5,11 @@ import config
 app = Flask(__name__)
 port = 3001
 
+@app.route('/users')
+def get_users():
+    try:
+        
+
 @app.route('/ethData')
 def get_eth_data():
     try:
