@@ -1,0 +1,22 @@
+{
+  "data": [
+    {
+      "id": "did:privy:cfbsvtqo2c22202mo08847jdux2z",
+      "created_at": 1667165891,
+      "linked_accounts": [
+        {
+          "type": "wallet",
+          "address": "0xABCDEFGHIJKL01234567895C5cAe8B9472c14328",
+          "chain_type": "ethereum",
+          "verified_at": 1667165891
+        },
+        {
+          "type": "email",
+          "address": "user@gmail.com",
+          "verified_at": 1667350653
+        }
+      ]
+    }
+  ],
+  "next_cursor": "did:privy:123456789"
+}

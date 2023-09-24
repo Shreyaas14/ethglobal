@@ -1,6 +1,6 @@
-// import {useRouter} from 'next/router';
+import {useRouter} from 'next/router';
 import React, {useEffect, useState} from 'react';
-// import {usePrivy, useWallets} from '@privy-io/react-auth';
+import {usePrivy, useWallets} from '@privy-io/react-auth';
 import Head from 'next/head';
 
 // import { Client } from '@xmtp/xmtp-js'
