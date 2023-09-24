@@ -1,44 +1,117 @@
-import {useRouter} from 'next/router';
-import React, {useEffect} from 'react';
-import {usePrivy} from '@privy-io/react-auth';
+import { useRouter } from 'next/router';
+import React, { useEffect, useState } from 'react';
+import { usePrivy } from '@privy-io/react-auth';
 import Head from 'next/head';
-import { Client } from '@xmtp/xmtp-js'
-import { Wallet } from 'ethers'
+import { Client } from '@xmtp/xmtp-js'; 
+import { Wallet } from 'ethers'; 
+import { get } from 'http';
+
+interface LinkedAccount {
+  type: string; // More specific types like 'wallet' | 'email' can be used if known
+  address: string;
+  chain_type?: string; 
+  verified_at: number;
+}
+
+interface UserData {
+  id: string;
+  created_at: number;
+  linked_accounts: LinkedAccount[];
+}
+
+interface UserResponse {
+  data: UserData[];
+  next_cursor: string;
+}
+
+const data: UserResponse = require('./sample.json');
+
+function extractAddresses(data: UserResponse): string[] {
+  const addresses: string[] = [];
+  
+  for (const user of data.data) {
+    for (const account of user.linked_accounts) {
+      addresses.push(account.address);
+    }
+  }
+
+  return addresses;
+}
+
+const addressesArray = extractAddresses(data);
+console.log(addressesArray);
+
+// Method to extract the addresses
+
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const {
-    ready,
-    authenticated,
-    user,
-    logout,
-  } = usePrivy();
+    const router = useRouter();
+    const {
+        ready,
+        authenticated,
+    } = usePrivy();
 
-  useEffect(() => {
-    if (ready && !authenticated) {
-      router.push('/');
+    const [users, setUsers] = useState<UserData[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+
+    useEffect(() => {
+        if (ready && !authenticated) {
+            router.push('/');
+        }
+    }, [ready, authenticated, router]);
+
+    const getUsers = async (cursor) => {
+        const url = `/api/getUsers` + (cursor ? `?cursor=${cursor}` : '');
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        return console.log(response.json());
+    };
+
+    useEffect(() => {
+        const fetchData = async () => {
+            let cursor;
+            let fetchedUsers: any[] | ((prevState: never[]) => never[]) = [];
+
+            try {
+                do {
+                    const query = await getUsers(cursor);
+                    fetchedUsers = fetchedUsers.concat(query.data);
+                    cursor = query.next_cursor;
+                } while(cursor !== null);
+
+                setUsers(fetchedUsers);
+            } 
+            catch (err) {
+              if (err instanceof Error) {
+                  setError(err.message);
+              } else {
+                  setError('An error occurred.');
+              }
+          }
+            finally 
+            {
+                setIsLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    if (isLoading) {
+        return <div>Loading...</div>;
     }
-  }, [ready, authenticated, router]);
 
-
-
-
-    // You'll want to replace this with a wallet from your application
-    const wallet = Wallet.createRandom()
-    // Create the client with your wallet. This will connect to the XMTP development network by default
-    const xmtp = await Client.create(wallet)
-    // Start a conversation with XMTP
-    const conversation = await xmtp.conversations.newConversation(
-      '0x3F11b27F323b62B159D2642964fa27C46C841897'
-    )
-    // Load all messages in the conversation
-    const messages = await conversation.messages()
-    // Send a message
-    await conversation.send('gm')
-    // Listen for new messages in the conversation
-    for await (const message of await conversation.streamMessages()) {
-      console.log(`[${message.senderAddress}]: ${message.content}`)
+    if (error) {
+        return <div>Error: {error}</div>;
     }
+
+
   return (
     <>
       <Head>
