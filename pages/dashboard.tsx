@@ -92,6 +92,7 @@ export default function DashboardPage() {
           <div className='w-[30%] flex flex-col gap-2' >
             <div className='bg-white/10 rounded-md p-4'>
               <h4 className='font-semibold text-white text-[34px] '>Staked Holdings</h4>
+              
               <table className="table-auto border-collapse text-white">
                 <tbody>
                     <tr>
